@@ -1,0 +1,63 @@
+version: "3"
+
+services:
+  client_cache_server:
+    build: ./API/ClientServerAndCacheAPI/
+    hostname: client_cache_server
+    ports:
+      - 5160:80
+      - 5161:443
+    networks:
+      - network
+  catalog_server:
+    build: ./API/CatalogServer/
+    hostname: catalog
+    ports:
+      - 5025:80
+      - 5026:443
+    volumes:
+      - ./API/CatalogServer/CatalogAPI.db:/app/CatalogAPI.db
+    depends_on:
+      - client_cache_server  
+    networks:
+      - network
+  catalog_server_replica:
+    build: ./API/CatalogServer/
+    hostname: catalog_replica
+    ports:
+      - 6025:80
+      - 6026:443
+    volumes:
+      - ./API/CatalogServer/CatalogAPI_replica.db:/app/CatalogAPI_replica.db
+    depends_on:
+      - client_cache_server  
+    networks:
+      - network    
+  order_server:
+    build: ./API/OrderAPI/
+    hostname: order
+    ports:
+      - 5020:80
+      - 5021:443
+    volumes:
+      - ./API/OrderAPI/OrderAPI.db:/app/OrderAPI.db
+    depends_on:
+      - client_cache_server  
+      - catalog_server
+    networks:
+      - network
+  order_server_replica:
+    build: ./API/OrderAPI/
+    hostname: order_replica
+    ports:
+      - 6020:80
+      - 6021:443
+    volumes:
+      - ./API/OrderAPI/OrderAPI_replica.db:/app/OrderAPI_replica.db
+    depends_on:
+      - client_cache_server  
+      - catalog_server
+    networks:
+      - network   
+networks:
+  network:
